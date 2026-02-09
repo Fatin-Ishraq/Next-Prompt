@@ -1,0 +1,7 @@
+# AutoPost - Core Dependencies
+requests>=2.31.0
+feedparser>=6.0.10
+python-dotenv>=1.0.0
+supabase>=2.3.0
+cloudinary>=1.36.0
+schedule>=1.2.1
