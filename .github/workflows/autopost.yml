@@ -28,6 +28,8 @@ jobs:
           DE_API_Image_KEY: ${{ secrets.DE_API_IMAGE_KEY }}
           fb_user_access_token: ${{ secrets.FB_USER_ACCESS_TOKEN }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_APP_ID: ${{ secrets.FB_APP_ID }}
+          FB_APP_SECRET: ${{ secrets.FB_APP_SECRET }}
           supabase_url: ${{ secrets.SUPABASE_URL }}
           supabase_key: ${{ secrets.SUPABASE_KEY }}
           mistral_api_key: ${{ secrets.MISTRAL_API_KEY }}
@@ -36,4 +38,5 @@ jobs:
           cloudinary_api_secret: ${{ secrets.CLOUDINARY_API_SECRET }}
           GENRE: tech
         run: |
+          echo "Testing FB_PAGE_ID length: ${#FB_PAGE_ID}"
           python main.py --single
