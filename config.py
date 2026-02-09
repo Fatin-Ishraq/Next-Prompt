@@ -15,6 +15,8 @@ class Config:
     # Facebook Configuration
     FB_PAGE_ID = os.getenv("FB_PAGE_ID", "887553684451232")
     FB_ACCESS_TOKEN = os.getenv("fb_user_access_token", "")
+    FB_APP_ID = os.getenv("FB_APP_ID", "")
+    FB_APP_SECRET = os.getenv("FB_APP_SECRET", "")
     
     # Mistral AI Configuration
     MISTRAL_API_KEY = os.getenv("mistral_api_key", "")

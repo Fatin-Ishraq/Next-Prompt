@@ -15,10 +15,21 @@ from config import Config
 class FacebookPoster:
     """Facebook Graph API integration for posting."""
     
-    def __init__(self):
+    def __init__(self, use_token_manager: bool = True):
         self.page_id = Config.FB_PAGE_ID
-        self.access_token = Config.FB_ACCESS_TOKEN
         self.api_version = "v19.0"
+        
+        # Try to get token from TokenManager first
+        if use_token_manager:
+            try:
+                from modules.token_manager import TokenManager
+                manager = TokenManager()
+                self.access_token = manager.get_page_token()
+            except Exception as e:
+                print(f"⚠️  TokenManager error: {e}")
+                self.access_token = Config.FB_ACCESS_TOKEN
+        else:
+            self.access_token = Config.FB_ACCESS_TOKEN
     
     def post_with_image(self, caption: str, image_url: str, link: str = None) -> Optional[str]:
         """
