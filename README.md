@@ -1,56 +1,73 @@
-# AutoPost - Automated Facebook News Posting System 🤖
+# AutoPost 🤖
 
-An AI-powered system that automatically curates tech news, generates engaging content, creates images, and posts to Facebook every 6 hours.
+> An AI-powered system that automatically curates tech news, generates educational content, creates branded images, and posts to Facebook.
 
-## Features
+**Built as a learning project** to explore automation, AI integration, and social media APIs.
 
-- 📡 **RSS Feed Aggregation** - Fetches from TechCrunch, The Verge, Ars Technica, Wired, Hacker News
-- 🧠 **AI-Powered Curation** - Mistral Large 3 selects the best news and generates engaging captions
-- 🎨 **Image Generation** - FLUX.2 Klein 4B BF16 creates minimalist tech illustrations
-- ☁️ **Cloud Storage** - Cloudinary for permanent image hosting
-- 📱 **Facebook Integration** - Automatic posting to Facebook Pages
-- 💾 **Memory System** - Supabase tracks history and prevents duplicates
-- ⏰ **Scheduled Posts** - Runs every 6 hours via GitHub Actions
+## What It Does
 
-## Setup
+```
+RSS Feeds → AI Curation → Caption Generation → Image Creation → Facebook Post
+```
 
-### 1. Install Dependencies
+Every 6 hours, AutoPost:
+1. **Fetches** news from TechCrunch, The Verge, Ars Technica, Wired, Hacker News
+2. **Selects** the most impactful story using Gemini AI
+3. **Writes** an educational caption that teaches readers something new
+4. **Creates** a branded image using FLUX.2 (via deAPI)
+5. **Posts** to Facebook with the article link in comments
+6. **Remembers** what was posted to avoid duplicates
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| AI/LLM | Google Gemini 2.5 Flash Lite |
+| Image Generation | FLUX.2 Klein 4B (deAPI) |
+| Image Storage | Cloudinary |
+| Database | Supabase (PostgreSQL) |
+| Social Media | Facebook Graph API |
+| Scheduling | GitHub Actions |
+
+## Quick Start
+
+### 1. Clone & Install
 
 ```bash
+git clone https://github.com/YOUR_USERNAME/autopost.git
+cd autopost
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment Variables
+### 2. Configure Environment
 
-Create a `.env` file:
+Create `.env`:
 
 ```env
-# DeAPI (Image Generation)
-DE_API_Image_KEY=your_deapi_key
+# AI
+GEMINI_API_KEY=your_key
+
+# Image Generation
+DE_API_Image_KEY=your_key
 
 # Facebook
-fb_user_access_token=your_facebook_page_token
 FB_PAGE_ID=your_page_id
+FB_APP_ID=your_app_id
+FB_APP_SECRET=your_app_secret
 
-# Supabase (Database)
-supabase_url=your_supabase_url
-supabase_key=your_supabase_key
+# Database
+supabase_url=your_url
+supabase_key=your_key
 
-# Mistral AI
-mistral_api_key=your_mistral_key
-
-# Cloudinary (Image Storage)
-cloudinary_cloud_name=your_cloud_name
-cloudinary_api_key=your_api_key
-cloudinary_api_secret=your_api_secret
-
-# Configuration
-GENRE=tech
+# Image Storage
+cloudinary_cloud_name=your_name
+cloudinary_api_key=your_key
+cloudinary_api_secret=your_secret
 ```
 
-### 3. Set Up Supabase Database
+### 3. Setup Database
 
-Run this SQL in your Supabase Dashboard:
+Run in Supabase SQL Editor:
 
 ```sql
 CREATE TABLE posts (
@@ -70,104 +87,59 @@ CREATE TABLE context (
     value TEXT,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
-CREATE INDEX idx_posts_url ON posts(url);
-CREATE INDEX idx_posts_posted_at ON posts(posted_at DESC);
-CREATE INDEX idx_context_key ON context(key);
 ```
 
-## Usage
-
-### Test Configuration
+### 4. Setup Facebook Token (One-Time)
 
 ```bash
-python config.py
+# Get short-lived token from Graph Explorer, then:
+python modules/token_manager.py --setup YOUR_SHORT_LIVED_TOKEN
 ```
 
-### Test Individual Modules
+This stores a permanent page token in Supabase.
+
+### 5. Test Run
 
 ```bash
-python modules/rss_fetcher.py
-python modules/database.py
-python modules/ai_engine.py
-python modules/image_generator.py
-python modules/cloudinary_uploader.py
-python modules/facebook_poster.py
-```
-
-### Dry Run (No Facebook Posting)
-
-```bash
+# Dry run (no posting)
 python main.py --dry-run --single
-```
 
-### Single Post
-
-```bash
+# Real post
 python main.py --single
 ```
 
-### Continuous Mode (Every 6 Hours)
+## Deploy to GitHub Actions
 
-```bash
-python main.py
-```
-
-## GitHub Actions Deployment
-
-1. **Push to GitHub**:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin your-repo-url
-   git push -u origin main
-   ```
-
-2. **Add Secrets** in GitHub Settings → Secrets and variables → Actions:
-   - `DE_API_IMAGE_KEY`
-   - `FB_USER_ACCESS_TOKEN`
-   - `FB_PAGE_ID`
-   - `SUPABASE_URL`
-   - `SUPABASE_KEY`
-   - `MISTRAL_API_KEY`
-   - `CLOUDINARY_CLOUD_NAME`
-   - `CLOUDINARY_API_KEY`
-   - `CLOUDINARY_API_SECRET`
-
-3. **Enable GitHub Actions** - The workflow runs automatically every 6 hours!
+1. Push to GitHub
+2. Add secrets in Settings → Secrets → Actions
+3. The workflow runs every 6 hours automatically
 
 ## Project Structure
 
 ```
 autopost/
-├── config.py                 # Configuration loader
-├── main.py                   # Main orchestrator
-├── requirements.txt          # Python dependencies
-├── .env                      # Environment variables (local)
+├── config.py              # Configuration & brand settings
+├── main.py                # Orchestrator
 ├── modules/
-│   ├── rss_fetcher.py       # RSS feed aggregation
-│   ├── database.py          # Supabase integration
-│   ├── ai_engine.py         # Mistral AI integration
-│   ├── image_generator.py  # deAPI image generation
-│   ├── cloudinary_uploader.py # Cloudinary uploads
-│   └── facebook_poster.py   # Facebook Graph API
-└── .github/
-    └── workflows/
-        └── autopost.yml     # GitHub Actions workflow
+│   ├── rss_fetcher.py    # RSS aggregation
+│   ├── ai_engine.py      # Gemini AI integration
+│   ├── image_generator.py # FLUX.2 image creation
+│   ├── cloudinary_uploader.py
+│   ├── facebook_poster.py
+│   ├── database.py       # Supabase
+│   └── token_manager.py  # Facebook token handling
+└── .github/workflows/
+    └── autopost.yml      # Scheduled automation
 ```
 
-## How It Works
+## What I Learned
 
-1. **Fetch** - Gets latest tech news from RSS feeds
-2. **Filter** - Removes already posted articles using Supabase
-3. **Select** - Mistral AI picks the best story
-4. **Create** - AI generates caption and image prompt
-5. **Generate** - FLUX.2 creates a minimalist image
-6. **Upload** - Stores image on Cloudinary
-7. **Post** - Publishes to Facebook with link in comments
-8. **Save** - Records to Supabase to avoid duplicates
+- Building multi-service integrations (7+ APIs)
+- AI prompt engineering for consistent output
+- Token management and OAuth flows
+- GitHub Actions for serverless scheduling
+- Error handling for production reliability
 
 ## License
 
-MIT
+MIT - Use it, learn from it, build on it!

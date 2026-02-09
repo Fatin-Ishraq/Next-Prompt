@@ -1,6 +1,6 @@
 """
-AI Engine Module - Mistral Large 3 Integration
-Uses Mistral AI to select the best news and generate engaging captions.
+AI Engine Module - Google Gemini Integration
+Uses Gemini AI to select the best news and generate educational captions.
 """
 import sys
 import os
@@ -14,16 +14,12 @@ from config import Config
 
 
 class AIEngine:
-    """Mistral AI integration for content curation and generation."""
+    """Gemini AI integration for content curation and generation."""
     
     def __init__(self):
-        self.api_url = Config.MISTRAL_API_URL
-        self.api_key = Config.MISTRAL_API_KEY
-        self.model = Config.MISTRAL_MODEL
-        self.headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
+        self.api_key = Config.GEMINI_API_KEY
+        self.base_url = Config.GEMINI_API_URL
+        self.model = Config.GEMINI_MODEL
     
     def select_best_news(self, articles: List[Dict], recent_posts: List[Dict] = None) -> Optional[Dict]:
         """
@@ -47,7 +43,7 @@ class AIEngine:
         
         # Build article list for AI
         article_list = ""
-        for i, article in enumerate(articles[:20], 1):  # Limit to top 20 for context size
+        for i, article in enumerate(articles[:20], 1):
             article_list += f"{i}. [{article['source']}] {article['title']}\n"
             if article.get('summary'):
                 article_list += f"   Summary: {article['summary'][:200]}...\n"
@@ -69,10 +65,9 @@ Select the ONE article that:
 Respond with ONLY the number (1-{min(20, len(articles))}) of the best article. Nothing else."""
 
         try:
-            response = self._call_mistral([{"role": "user", "content": prompt}])
+            response = self._call_gemini(prompt)
             
             if response:
-                # Extract the number
                 selection = response.strip()
                 try:
                     index = int(selection) - 1
@@ -85,39 +80,41 @@ Respond with ONLY the number (1-{min(20, len(articles))}) of the best article. N
         except Exception as e:
             print(f"⚠️  Error in news selection: {e}")
         
-        # Fallback: return first article
         print("⚠️  Using fallback: selecting first article")
         return articles[0]
     
     def generate_caption(self, article: Dict) -> str:
         """
-        Generate an engaging Facebook caption for the article.
+        Generate an educational Facebook caption for the article.
         
         Args:
             article: Article dictionary with title, summary, url
             
         Returns:
-            Engaging caption text
+            Educational caption text
         """
-        prompt = f"""Create an ENGAGING Facebook post caption for this tech news article.
+        prompt = f"""Create an EDUCATIONAL Facebook post caption for this tech news article.
 
 Title: {article['title']}
 Summary: {article.get('summary', 'No summary available')}
 Source: {article['source']}
 
-Requirements:
-- Tone: {Config.TONE}
-- Length: 2-3 sentences
-- Include relevant emojis
-- Create curiosity without clickbait
-- End with a call-to-action (e.g., "Read more in comments 👇")
-- DO NOT include hashtags
-- DO NOT include the link (it will be in comments)
+Write 2-3 substantial paragraphs that:
+- Hook the reader immediately with a compelling opening line
+- Explain what happened and why it's significant in the tech world
+- Provide context - how does this fit into the bigger picture? What led to this?
+- Include technical details that developers and tech enthusiasts would appreciate
+- Explain any jargon in simple terms so anyone can follow
+- Discuss potential implications or what this means for the future
+- Include 3-4 relevant emojis placed naturally throughout
+- End the final paragraph with "Read more in comments 👇"
 
-Write ONLY the caption, nothing else."""
+Write in an engaging, conversational tone - like you're explaining exciting tech news to a smart friend who wants to actually understand it, not just skim headlines.
+
+DO NOT use hashtags. DO NOT include the link. Write ONLY the caption."""
 
         try:
-            response = self._call_mistral([{"role": "user", "content": prompt}])
+            response = self._call_gemini(prompt)
             if response:
                 caption = response.strip()
                 print(f"✍️  Generated caption: {caption[:80]}...")
@@ -125,35 +122,47 @@ Write ONLY the caption, nothing else."""
         except Exception as e:
             print(f"⚠️  Error generating caption: {e}")
         
-        # Fallback caption
         return f"🚀 {article['title']}\n\nRead more in comments 👇"
     
     def generate_image_prompt(self, article: Dict) -> str:
         """
-        Generate an image prompt for the article.
+        Generate a hook-style image prompt based on article analysis.
         
         Args:
             article: Article dictionary
             
         Returns:
-            Image generation prompt
+            Image generation prompt that works as a visual hook
         """
-        prompt = f"""Create a detailed image generation prompt for this tech news article.
+        prompt = f"""Analyze this tech article and create an image prompt that will stop people scrolling.
 
 Title: {article['title']}
 Summary: {article.get('summary', '')}
 
-The image should be:
-- Style: {Config.IMAGE_STYLE}, modern, tech-focused
-- Suitable for Facebook posts
-- Eye-catching but not cluttered
-- Professional and high-quality
+Your task:
+1. What is the CORE visual concept of this story? (A product? A breakthrough? A warning? An achievement?)
+2. What emotion should the image evoke? (Excitement, awe, curiosity, concern?)
+3. Create a scene-based image that tells part of the story visually
 
-Write a detailed image generation prompt (1-2 sentences) that captures the essence of this article.
-Include only the prompt, no explanation."""
+Image requirements:
+- NO TEXT, NO WORDS, NO LETTERS, NO LOGOS - AI image generators cannot render text properly
+- NO human faces (they look uncanny)
+- Dramatic lighting and composition
+- Clean, uncluttered background
+- Professional quality suitable for social media
+- The image should make someone curious about the article
+
+Write a detailed image generation prompt (2-3 sentences) describing a specific scene or visual concept. Focus on what should be IN the image, not abstract styles.
+
+Example good prompts:
+- "A sleek smartphone unfolding like origami, floating against a dark gradient background with subtle blue rim lighting"
+- "Massive server room with glowing quantum processors, ethereal mist flowing between racks, cinematic wide shot"
+- "Robot hand and human hand reaching toward each other, dramatic side lighting, dark background"
+
+Write ONLY the image prompt, no explanation."""
 
         try:
-            response = self._call_mistral([{"role": "user", "content": prompt}])
+            response = self._call_gemini(prompt)
             if response:
                 image_prompt = response.strip()
                 print(f"🖼️  Image prompt: {image_prompt[:80]}...")
@@ -161,37 +170,62 @@ Include only the prompt, no explanation."""
         except Exception as e:
             print(f"⚠️  Error generating image prompt: {e}")
         
-        # Fallback: simple prompt
-        return f"Minimalist tech illustration representing: {article['title']}"
+        return f"Dramatic tech concept visualization, cinematic lighting, dark background, no text. Theme: {article['title'][:40]}"
     
-    def _call_mistral(self, messages: List[Dict]) -> Optional[str]:
-        """Make API call to Mistral."""
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 500
+    def _call_gemini(self, prompt: str) -> Optional[str]:
+        """Make API call to Gemini."""
+        url = f"{self.base_url}/{self.model}:generateContent"
+        
+        headers = {
+            "x-goog-api-key": self.api_key,
+            "Content-Type": "application/json"
         }
         
-        response = requests.post(
-            self.api_url,
-            headers=self.headers,
-            json=payload,
-            timeout=30
-        )
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt}
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.8,
+                "maxOutputTokens": 2500
+            }
+        }
         
-        if response.status_code == 200:
-            data = response.json()
-            return data["choices"][0]["message"]["content"]
-        else:
-            print(f"⚠️  Mistral API error {response.status_code}: {response.text}")
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            
+            if response.status_code == 200:
+                data = response.json()
+                # Extract text from Gemini response structure
+                try:
+                    text = data["candidates"][0]["content"]["parts"][0]["text"]
+                    if text:
+                        return text
+                    else:
+                        print("⚠️  Gemini returned empty text")
+                        return None
+                except (KeyError, IndexError) as e:
+                    print(f"⚠️  Error parsing Gemini response: {e}")
+                    print(f"    Response: {data}")
+                    return None
+            else:
+                print(f"⚠️  Gemini API error {response.status_code}: {response.text[:500]}")
+                return None
+        except requests.exceptions.Timeout:
+            print("⚠️  Gemini API timeout (60s)")
+            return None
+        except Exception as e:
+            print(f"⚠️  Gemini API exception: {e}")
             return None
 
 
 if __name__ == "__main__":
-    print("🔄 Testing Mistral AI Engine...")
+    print("🔄 Testing Gemini AI Engine...")
     
-    # Test data
     test_articles = [
         {
             "title": "OpenAI releases GPT-5 with breakthrough reasoning capabilities",

@@ -18,10 +18,10 @@ class Config:
     FB_APP_ID = os.getenv("FB_APP_ID", "")
     FB_APP_SECRET = os.getenv("FB_APP_SECRET", "")
     
-    # Mistral AI Configuration
-    MISTRAL_API_KEY = os.getenv("mistral_api_key", "")
-    MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions"
-    MISTRAL_MODEL = "mistral-large-latest"
+    # Gemini AI Configuration
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+    GEMINI_MODEL = "gemini-2.5-flash-lite"
     
     # deAPI Image Generation Configuration
     DEAPI_KEY = os.getenv("DE_API_Image_KEY", "")
@@ -46,7 +46,7 @@ class Config:
     
     # Content Configuration
     GENRE = os.getenv("GENRE", "tech")
-    TONE = "engaging"  # Engaging tone for captions
+    TONE = "educational"
     
     # RSS Feeds by Genre
     RSS_FEEDS = {
@@ -72,8 +72,8 @@ class Config:
         
         if not cls.FB_ACCESS_TOKEN:
             issues.append("FB_ACCESS_TOKEN not set")
-        if not cls.MISTRAL_API_KEY:
-            issues.append("MISTRAL_API_KEY not set")
+        if not cls.GEMINI_API_KEY:
+            issues.append("GEMINI_API_KEY not set")
         if not cls.DEAPI_KEY:
             issues.append("DEAPI_KEY not set")
         if not cls.SUPABASE_URL:
