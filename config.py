@@ -13,8 +13,8 @@ class Config:
     """Configuration settings for AutoPost system."""
     
     # Facebook Configuration
-    FB_PAGE_ID = os.getenv("FB_PAGE_ID", "887553684451232")
-    FB_ACCESS_TOKEN = os.getenv("fb_user_access_token", "")
+    FB_PAGE_ID = os.getenv("FB_PAGE_ID", "887553684451232").strip()
+    FB_ACCESS_TOKEN = os.getenv("fb_user_access_token", "").strip()
     FB_APP_ID = os.getenv("FB_APP_ID", "")
     FB_APP_SECRET = os.getenv("FB_APP_SECRET", "")
     
