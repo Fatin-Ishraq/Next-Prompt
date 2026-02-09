@@ -24,10 +24,11 @@ class Config:
     # deAPI Image Generation Configuration
     DEAPI_KEY = os.getenv("DE_API_Image_KEY", "")
     DEAPI_BASE_URL = "https://api.deapi.ai/api/v1/client"
-    DEAPI_MODEL = "FLUX.2 Klein 4B BF16"
+    DEAPI_MODEL = "Flux_2_Klein_4B_BF16"
     IMAGE_WIDTH = 1024
     IMAGE_HEIGHT = 1024
     IMAGE_STYLE = "minimalist"  # Minimalist style for generated images
+    
     
     # Supabase Configuration
     SUPABASE_URL = os.getenv("supabase_url", "")

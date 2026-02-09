@@ -62,7 +62,7 @@ class ImageGenerator:
             "model": self.model,
             "width": Config.IMAGE_WIDTH,
             "height": Config.IMAGE_HEIGHT,
-            "steps": 20,
+            "steps": 4,
             "guidance": 7.5,
             "seed": -1,  # -1 for random seed
         }
