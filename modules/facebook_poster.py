@@ -39,61 +39,44 @@ class FacebookPoster:
     ) -> Optional[str]:
         """
         Post to Facebook Page with an image.
-        Posts to the feed endpoint so it appears in timeline, not just photos.
+        Uploads directly to /photos endpoint with published=true to create
+        a proper photo post that appears in both timeline and photos.
 
         Args:
             caption: The post caption/message
             image_url: URL of the image to post
-            link: Optional link to include in first comment
+            link: Optional link to include in caption
 
         Returns:
             Facebook post ID, or None if failed
         """
         try:
-            print(f"📱 Posting to Facebook Page feed...")
+            print(f"📱 Posting to Facebook Page...")
 
-            # Step 1: Upload the photo to get a photo ID
-            upload_url = (
+            # Build full caption with link if provided
+            full_caption = caption
+            if link:
+                full_caption += f"\n\n🔗 Read more: {link}"
+
+            # Direct photo upload to page photos endpoint
+            # published=true creates both the photo object AND the feed story
+            photos_url = (
                 f"https://graph.facebook.com/{self.api_version}/{self.page_id}/photos"
             )
-            upload_payload = {
+
+            payload = {
                 "url": image_url,
-                "published": "false",  # Don't publish yet, just upload
+                "caption": full_caption,
+                "published": "true",
                 "access_token": self.access_token,
             }
 
-            upload_response = requests.post(upload_url, data=upload_payload, timeout=30)
-
-            if upload_response.status_code != 200:
-                print(f"⚠️  Photo upload failed: {upload_response.text}")
-                return None
-
-            photo_id = upload_response.json().get("id")
-            if not photo_id:
-                print("⚠️  No photo ID returned from upload")
-                return None
-
-            # Step 2: Post to feed with the uploaded photo attached
-            feed_url = (
-                f"https://graph.facebook.com/{self.api_version}/{self.page_id}/feed"
-            )
-            feed_payload = {
-                "message": caption,
-                "attached_media[0]": f'{{"media_fbid":"{photo_id}"}}',
-                "access_token": self.access_token,
-            }
-
-            response = requests.post(feed_url, data=feed_payload, timeout=30)
+            response = requests.post(photos_url, data=payload, timeout=30)
 
             if response.status_code == 200:
                 data = response.json()
-                post_id = data.get("id")
-                print(f"✅ Posted successfully to feed! Post ID: {post_id}")
-
-                # Add link as first comment if provided
-                if link and post_id:
-                    self._add_comment(post_id, f"🔗 Read more: {link}")
-
+                post_id = data.get("id") or data.get("post_id")
+                print(f"✅ Posted successfully! Post ID: {post_id}")
                 return post_id
             else:
                 print(f"⚠️  Facebook API error {response.status_code}: {response.text}")
